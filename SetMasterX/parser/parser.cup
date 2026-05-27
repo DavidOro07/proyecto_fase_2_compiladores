@@ -1,0 +1,146 @@
+import java_cup.runtime.*;
+import java.util.*;
+
+parser code {:
+
+    public void syntax_error(Symbol s){
+
+        System.out.println(
+                "❌ Error sintáctico en línea "
+                        + s.left +
+                        ", columna " +
+                        s.right
+        );
+    }
+
+:};
+
+terminal SET_START, SET_END, INICIO, FIN;
+terminal SI, ENTONCES, PARA_CADA, EN, VENN;
+
+terminal UNION, INTERSECCION, DIFERENCIA, DIF_SIMETRICA;
+terminal SUBCONJUNTO, PERTENECE, IGUALDAD;
+
+terminal LLAVE_ABRE, LLAVE_CIERRA;
+terminal PAREN_ABRE, PAREN_CIERRA;
+terminal COMA, PUNTO_COMA, ASIGNACION;
+
+terminal Integer ENTERO;
+terminal String ID;
+terminal String CARACTER;
+
+non terminal programa;
+non terminal bloque;
+non terminal sentencia;
+
+non terminal Set<Integer> conjunto;
+non terminal List<Integer> lista;
+
+non terminal Set<Integer> operacion;
+
+start with programa;
+
+programa ::=
+    SET_START
+    INICIO
+    bloque
+    FIN
+    SET_END
+;
+
+bloque ::=
+    bloque sentencia
+    |
+;
+
+sentencia ::=
+
+    ID:i ASIGNACION conjunto:c PUNTO_COMA
+    {:
+        SymbolTable.guardar(i, c);
+    :}
+
+    |
+
+    ID:i ASIGNACION operacion:o PUNTO_COMA
+    {:
+        SymbolTable.guardar(i, o);
+    :}
+
+    |
+
+    VENN PAREN_ABRE operacion:o PAREN_CIERRA PUNTO_COMA
+    {:
+        System.out.println("Resultado = " + o);
+
+        VennGenerator.generar(o.toString());
+    :}
+;
+
+conjunto ::=
+    LLAVE_ABRE lista:l LLAVE_CIERRA
+    {:
+        RESULT = new HashSet<>(l);
+    :}
+;
+
+lista ::=
+    lista:l COMA ENTERO:e
+    {:
+        l.add(e);
+
+        RESULT = l;
+    :}
+
+    |
+
+    ENTERO:e
+    {:
+        List<Integer> temp = new ArrayList<>();
+
+        temp.add(e);
+
+        RESULT = temp;
+    :}
+;
+
+operacion ::=
+
+    ID:a UNION ID:b
+    {:
+        RESULT = SetOperations.union(
+                SymbolTable.obtener(a),
+                SymbolTable.obtener(b)
+        );
+    :}
+
+    |
+
+    ID:a INTERSECCION ID:b
+    {:
+        RESULT = SetOperations.interseccion(
+                SymbolTable.obtener(a),
+                SymbolTable.obtener(b)
+        );
+    :}
+
+    |
+
+    ID:a DIFERENCIA ID:b
+    {:
+        RESULT = SetOperations.diferencia(
+                SymbolTable.obtener(a),
+                SymbolTable.obtener(b)
+        );
+    :}
+
+    |
+
+    ID:a DIF_SIMETRICA ID:b
+    {:
+        RESULT = SetOperations.diferenciaSimetrica(
+                SymbolTable.obtener(a),
+                SymbolTable.obtener(b)
+        );
+    :}
+;
