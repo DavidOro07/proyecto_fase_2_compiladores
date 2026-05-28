@@ -5,11 +5,11 @@ parser code {:
 
     public void syntax_error(Symbol s){
 
-        System.out.println(
-                "❌ Error sintáctico en línea "
-                        + s.left +
-                        ", columna " +
-                        s.right
+        ErrorManager.addError(
+                "SINTÁCTICO",
+                "Token inesperado: " + s.value,
+                s.left + 1,
+                s.right + 1
         );
     }
 

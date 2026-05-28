@@ -80,9 +80,10 @@ ESPACIO = [ \t\r\n]+
 
 // Error léxico
 . {
-    System.out.println(
-        " ERROR LÉXICO → Símbolo no válido: '" + yytext() + "'" +
-        " | Línea: " + (yyline+1) +
-        " | Columna: " + (yycolumn+1)
+    ErrorManager.addError(
+        "LÉXICO",
+        "Símbolo inválido: " + yytext(),
+        yyline + 1,
+        yycolumn + 1
     );
 }

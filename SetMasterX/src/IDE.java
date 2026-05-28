@@ -220,6 +220,7 @@ public class IDE extends JFrame {
         try {
 
             consola.setText("");
+            ErrorManager.clear();
 
             SymbolTable.tabla.clear();
 
@@ -248,8 +249,21 @@ public class IDE extends JFrame {
                     new parser(lexer);
 
             p.parse();
+            if(ErrorManager.hasErrors()){
+
+                consola.append(
+                        "❌ ERRORES ENCONTRADOS\n\n"
+                );
+
+                consola.append(
+                        ErrorManager.getErrors()
+                );
+
+                return;
+            }
 
             consola.append("✅ Compilación exitosa\n\n");
+            ReportGenerator.generarReporte();
 
             panelInfo.setText("");
 

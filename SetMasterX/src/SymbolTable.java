@@ -5,17 +5,26 @@ public class SymbolTable {
     public static HashMap<String, Set<Integer>> tabla =
             new HashMap<>();
 
-    public static void guardar(String nombre, Set<Integer> conjunto) {
+    // ==========================================
+    // GUARDAR
+    // ==========================================
+
+    public static void guardar(
+            String nombre,
+            Set<Integer> conjunto
+    ) {
 
         tabla.put(nombre, conjunto);
-
-        System.out.println("✔ Conjunto guardado: "
-                + nombre + " = " + conjunto);
     }
+
+    // ==========================================
+    // OBTENER
+    // ==========================================
 
     public static Set<Integer> obtener(String nombre) {
 
         if (!tabla.containsKey(nombre)) {
+
             throw new RuntimeException(
                     "❌ El conjunto '" + nombre + "' no existe."
             );
@@ -24,12 +33,30 @@ public class SymbolTable {
         return tabla.get(nombre);
     }
 
+    // ==========================================
+    // EXISTE
+    // ==========================================
+
+    public static boolean existe(String id){
+
+        return tabla.containsKey(id);
+    }
+
+    // ==========================================
+    // MOSTRAR TABLA
+    // ==========================================
+
     public static void mostrarTabla() {
 
-        System.out.println("\n===== TABLA DE SÍMBOLOS =====");
+        System.out.println(
+                "\n===== TABLA DE SÍMBOLOS ====="
+        );
 
-        for (String key : tabla.keySet()) {
-            System.out.println(key + " = " + tabla.get(key));
+        for(String key : tabla.keySet()) {
+
+            System.out.println(
+                    key + " = " + tabla.get(key)
+            );
         }
     }
 }
