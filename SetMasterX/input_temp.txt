@@ -1,0 +1,18 @@
+SET_START
+INICIO
+
+A = {1,2,3,4};
+B = {3,4,5,6};
+
+C = A ∪ B;
+D = A ∩ B;
+E = A - B;
+F = A Δ B;
+
+VENN(A ∪ B);
+VENN(A ∩ B);
+VENN(A - B);
+VENN(A Δ B);
+
+FIN
+SET_END

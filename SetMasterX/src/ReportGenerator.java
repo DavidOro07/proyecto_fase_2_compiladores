@@ -1,49 +1,71 @@
 import java.io.FileWriter;
-import java.io.IOException;
+import java.io.PrintWriter;
 
 public class ReportGenerator {
 
-    public static void generarReporte() {
+    public static void generarReporte(){
 
-        try {
+        try{
 
-            FileWriter writer =
+            FileWriter archivo =
                     new FileWriter("reporte.txt");
 
-            writer.write(
-                    "===== REPORTE =====\n\n"
+            PrintWriter writer =
+                    new PrintWriter(archivo);
+
+            writer.println(
+                    "===== REPORTE SETMASTER X =====\n"
             );
 
-            writer.write(
-                    "TABLA DE SÍMBOLOS\n\n"
+            // =========================
+            // TABLA DE SÍMBOLOS
+            // =========================
+
+            writer.println(
+                    "TABLA DE SÍMBOLOS\n"
             );
 
             for(String key : SymbolTable.tabla.keySet()){
 
-                writer.write(
-                        key + " = " +
-                                SymbolTable.tabla.get(key)
-                                + "\n"
+                writer.println(
+                        key
+                                + " = "
+                                + SymbolTable.tabla.get(key)
                 );
             }
 
-            writer.write("\n");
+            // =========================
+            // ERRORES
+            // =========================
 
-            writer.write(
-                    "ERRORES\n\n"
+            writer.println(
+                    "\nERRORES\n"
             );
 
-            writer.write(
-                    ErrorManager.getErrors()
-            );
+            if(ErrorManager.errores.isEmpty()){
+
+                writer.println(
+                        "Sin errores."
+                );
+
+            } else {
+
+                for(CompileError e :
+                        ErrorManager.errores){
+
+                    writer.println(
+                            e.toString()
+                    );
+                }
+            }
 
             writer.close();
 
             System.out.println(
-                    "Reporte generado"
+                    "✅ Reporte generado"
             );
 
-        } catch(IOException e){
+        }catch(Exception e){
 
             e.printStackTrace();
         }

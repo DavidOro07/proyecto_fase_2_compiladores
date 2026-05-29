@@ -1,62 +1,72 @@
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class SymbolTable {
 
-    public static HashMap<String, Set<Integer>> tabla =
+    public static Map<String, Set<Integer>> tabla =
             new HashMap<>();
 
-    // ==========================================
-    // GUARDAR
-    // ==========================================
+    // =====================================
+    // GUARDAR VARIABLE
+    // =====================================
 
-    public static void guardar(
-            String nombre,
-            Set<Integer> conjunto
+    public static void put(
+            String id,
+            Set<Integer> valor
     ) {
 
-        tabla.put(nombre, conjunto);
-    }
+        if(tabla.containsKey(id)){
 
-    // ==========================================
-    // OBTENER
-    // ==========================================
-
-    public static Set<Integer> obtener(String nombre) {
-
-        if (!tabla.containsKey(nombre)) {
-
-            throw new RuntimeException(
-                    "❌ El conjunto '" + nombre + "' no existe."
+            ErrorManager.addError(
+                    "Semántico",
+                    "Variable ya declarada: " + id,
+                    0,
+                    0
             );
+
+            return;
         }
 
-        return tabla.get(nombre);
+        tabla.put(id, valor);
     }
 
-    // ==========================================
-    // EXISTE
-    // ==========================================
+    // =====================================
+    // OBTENER VARIABLE
+    // =====================================
 
-    public static boolean existe(String id){
+    public static Set<Integer> get(String id) {
+
+        if(!tabla.containsKey(id)){
+
+            ErrorManager.addError(
+                    "Semántico",
+                    "Variable no declarada: " + id,
+                    0,
+                    0
+            );
+
+            return null;
+        }
+
+        return tabla.get(id);
+    }
+
+    // =====================================
+    // EXISTE
+    // =====================================
+
+    public static boolean exists(String id){
 
         return tabla.containsKey(id);
     }
 
-    // ==========================================
-    // MOSTRAR TABLA
-    // ==========================================
+    // =====================================
+    // LIMPIAR
+    // =====================================
 
-    public static void mostrarTabla() {
+    public static void clear(){
 
-        System.out.println(
-                "\n===== TABLA DE SÍMBOLOS ====="
-        );
-
-        for(String key : tabla.keySet()) {
-
-            System.out.println(
-                    key + " = " + tabla.get(key)
-            );
-        }
+        tabla.clear();
     }
 }

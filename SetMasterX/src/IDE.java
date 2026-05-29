@@ -259,7 +259,52 @@ public class IDE extends JFrame {
                         ErrorManager.getErrors()
                 );
 
-                return;
+                // GENERAR REPORTE
+                ReportGenerator.generarReporte();
+
+                consola.append(
+                        "\n📄 Reporte generado\n"
+                );
+
+            } else {
+
+                consola.append(
+                        "✅ Compilación exitosa\n\n"
+                );
+
+                ReportGenerator.generarReporte();
+
+                panelInfo.setText("");
+
+                panelInfo.append(
+                        "TOKENS / SÍMBOLOS\n\n"
+                );
+
+                for(String key : SymbolTable.tabla.keySet()){
+
+                    panelInfo.append(
+                            key +
+                                    " = " +
+                                    SymbolTable.tabla.get(key)
+                                    + "\n"
+                    );
+                }
+
+                consola.append(
+                        "===== TABLA DE SÍMBOLOS =====\n"
+                );
+
+                for(String key : SymbolTable.tabla.keySet()){
+
+                    consola.append(
+                            key +
+                                    " = " +
+                                    SymbolTable.tabla.get(key)
+                                    + "\n"
+                    );
+                }
+
+                consola.append("\n");
             }
 
             consola.append("✅ Compilación exitosa\n\n");
@@ -308,6 +353,13 @@ public class IDE extends JFrame {
             consola.append(
                     "❌ ERROR:\n\n" +
                             ex.getMessage()
+            );
+
+            // GENERAR REPORTE AUNQUE HAYA ERROR
+            ReportGenerator.generarReporte();
+
+            consola.append(
+                    "\n📄 Reporte generado\n"
             );
         }
     }

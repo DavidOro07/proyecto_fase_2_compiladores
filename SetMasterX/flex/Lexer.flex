@@ -1,89 +1,78 @@
 %%
-
 %class Lexer
-%public
 %unicode
+%cup
 %line
 %column
-%cup
 
 %{
 
-private java.util.HashMap<String, String> tablaSimbolos = new java.util.HashMap<>();
+import java_cup.runtime.Symbol;
 
-private java_cup.runtime.Symbol symbol(int type) {
-    return new java_cup.runtime.Symbol(type, yyline + 1, yycolumn + 1);
+private Symbol symbol(int type){
+    return new Symbol(type, yyline, yycolumn);
 }
 
-private java_cup.runtime.Symbol symbol(int type, Object value) {
-    return new java_cup.runtime.Symbol(type, yyline + 1, yycolumn + 1, value);
-}
-public void mostrarTablaSimbolos() {
-    System.out.println("\n TABLA DE SÍMBOLOS:");
-    for (String key : tablaSimbolos.keySet()) {
-        System.out.println("ID: " + key + " → Tipo: " + tablaSimbolos.get(key));
-    }
+private Symbol symbol(int type, Object value){
+    return new Symbol(type, yyline, yycolumn, value);
 }
 
 %}
 
-DIGITO = [0-9]
-LETRA = [a-zA-Z]
-ID = {LETRA}({LETRA}|{DIGITO})*
-ESPACIO = [ \t\r\n]+
+DIGIT = [0-9]
+ID = [a-zA-Z][a-zA-Z0-9]*
 
 %%
 
-// Palabras clave
-"SET_START"   { return symbol(sym.SET_START); }
-"SET_END"     { return symbol(sym.SET_END); }
-"INICIO"      { return symbol(sym.INICIO); }
-"FIN"         { return symbol(sym.FIN); }
-"SI"          { return symbol(sym.SI); }
-"ENTONCES"    { return symbol(sym.ENTONCES); }
-"PARA_CADA"   { return symbol(sym.PARA_CADA); }
-"EN"          { return symbol(sym.EN); }
-"VENN"        { return symbol(sym.VENN); }
+"SET_START"       { return symbol(sym.SET_START); }
+"SET_END"         { return symbol(sym.SET_END); }
 
-// Operadores
-"∪"           { return symbol(sym.UNION); }
-"∩"           { return symbol(sym.INTERSECCION); }
-"-"           { return symbol(sym.DIFERENCIA); }
-"Δ"           { return symbol(sym.DIF_SIMETRICA); }
+"INICIO"          { return symbol(sym.INICIO); }
+"FIN"             { return symbol(sym.FIN); }
 
-// Relacionales
-"⊂"           { return symbol(sym.SUBCONJUNTO); }
-"∈"           { return symbol(sym.PERTENECE); }
-"=="          { return symbol(sym.IGUALDAD); }
+"VENN"            { return symbol(sym.VENN); }
 
-// Símbolos
-"{"           { return symbol(sym.LLAVE_ABRE); }
-"}"           { return symbol(sym.LLAVE_CIERRA); }
-"("           { return symbol(sym.PAREN_ABRE); }
-")"           { return symbol(sym.PAREN_CIERRA); }
-","           { return symbol(sym.COMA); }
-";"           { return symbol(sym.PUNTO_COMA); }
-"="           { return symbol(sym.ASIGNACION); }
+"∪"               { return symbol(sym.UNION); }
+"∩"               { return symbol(sym.INTERSECCION); }
+"-"               { return symbol(sym.DIFERENCIA); }
+"Δ"               { return symbol(sym.DIF_SIM); }
 
-// Literales
-{DIGITO}+     { return symbol(sym.ENTERO, Integer.parseInt(yytext())); }
-\'[a-zA-Z]\'  { return symbol(sym.CARACTER, yytext()); }
+"{"               { return symbol(sym.LLAVE_IZQ); }
+"}"               { return symbol(sym.LLAVE_DER); }
 
-// Identificadores
-{ID} {
-    tablaSimbolos.put(yytext(), "ID");
-    return symbol(sym.ID, yytext());
+"("               { return symbol(sym.PAR_IZQ); }
+")"               { return symbol(sym.PAR_DER); }
+
+","               { return symbol(sym.COMA); }
+";"               { return symbol(sym.PYC); }
+
+"="               { return symbol(sym.IGUAL); }
+
+{DIGIT}+ {
+
+    return symbol(
+            sym.NUMERO,
+            Integer.parseInt(yytext())
+    );
 }
 
-// Espacios
-{ESPACIO} { }
+{ID} {
 
-// Error léxico
+    return symbol(
+            sym.ID,
+            yytext()
+    );
+}
+
+"//".* { }
+[ \t\r\n]+ { }
+
 . {
+
     ErrorManager.addError(
-        "LÉXICO",
-        "Símbolo inválido: " + yytext(),
-        yyline + 1,
-        yycolumn + 1
+            "Léxico",
+            "Caracter ilegal: " + yytext(),
+            yyline + 1,
+            yycolumn + 1
     );
 }

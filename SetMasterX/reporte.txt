@@ -1,0 +1,14 @@
+===== REPORTE SETMASTER X =====
+
+TABLA DE SÍMBOLOS
+
+A = [1, 2, 3, 4]
+B = [3, 4, 5, 6]
+C = [1, 2, 3, 4, 5, 6]
+D = [3, 4]
+E = [1, 2]
+F = [1, 2, 5, 6]
+
+ERRORES
+
+Sin errores.

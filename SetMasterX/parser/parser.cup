@@ -1,146 +1,471 @@
 import java_cup.runtime.*;
 import java.util.*;
+import java.io.*;
 
-parser code {:
+parser code
+{:
 
+    @Override
     public void syntax_error(Symbol s){
 
         ErrorManager.addError(
-                "SINTÁCTICO",
-                "Token inesperado: " + s.value,
+                "Sintáctico",
+                "Error sintáctico",
                 s.left + 1,
                 s.right + 1
+        );
+
+        System.out.println(
+                "❌ Error sintáctico en línea "
+                        + (s.left + 1)
+                        + ", columna "
+                        + (s.right + 1)
         );
     }
 
 :};
 
-terminal SET_START, SET_END, INICIO, FIN;
-terminal SI, ENTONCES, PARA_CADA, EN, VENN;
+// =====================================
+// TERMINALES
+// =====================================
 
-terminal UNION, INTERSECCION, DIFERENCIA, DIF_SIMETRICA;
-terminal SUBCONJUNTO, PERTENECE, IGUALDAD;
+terminal SET_START, SET_END;
+terminal INICIO, FIN;
 
-terminal LLAVE_ABRE, LLAVE_CIERRA;
-terminal PAREN_ABRE, PAREN_CIERRA;
-terminal COMA, PUNTO_COMA, ASIGNACION;
+terminal VENN;
 
-terminal Integer ENTERO;
+terminal UNION;
+terminal INTERSECCION;
+terminal DIFERENCIA;
+terminal DIF_SIM;
+
+terminal LLAVE_IZQ;
+terminal LLAVE_DER;
+
+terminal PAR_IZQ;
+terminal PAR_DER;
+
+terminal COMA;
+terminal PYC;
+
+terminal IGUAL;
+
+terminal Integer NUMERO;
 terminal String ID;
-terminal String CARACTER;
+
+// =====================================
+// NO TERMINALES
+// =====================================
 
 non terminal programa;
-non terminal bloque;
-non terminal sentencia;
+non terminal lista_sentencias;
+non terminal statement;
 
 non terminal Set<Integer> conjunto;
-non terminal List<Integer> lista;
+non terminal Set<Integer> lista;
+non terminal Set<Integer> expr;
 
-non terminal Set<Integer> operacion;
+// =====================================
+// PRECEDENCIA
+// =====================================
+
+precedence left UNION;
+precedence left INTERSECCION;
+precedence left DIFERENCIA;
+precedence left DIF_SIM;
+
+// =====================================
+// INICIO
+// =====================================
 
 start with programa;
+
+// =====================================
+// PROGRAMA
+// =====================================
 
 programa ::=
     SET_START
     INICIO
-    bloque
+    lista_sentencias
     FIN
     SET_END
+{:
+
+    ReportGenerator.generarReporte();
+
+:}
 ;
 
-bloque ::=
-    bloque sentencia
-    |
+// =====================================
+// LISTA SENTENCIAS
+// =====================================
+
+lista_sentencias ::=
+      lista_sentencias statement
+    | statement
 ;
 
-sentencia ::=
+// =====================================
+// SENTENCIAS
+// =====================================
 
-    ID:i ASIGNACION conjunto:c PUNTO_COMA
+statement ::=
+
+    // =================================
+    // DECLARACIÓN CONJUNTOS
+    // =================================
+
+    ID:id IGUAL conjunto:c PYC
     {:
-        SymbolTable.guardar(i, c);
+
+        SymbolTable.put(
+                id,
+                c
+        );
+
+        System.out.println(
+                "Conjunto guardado: "
+                        + id + " = " + c
+        );
+
     :}
 
-    |
+    // =================================
+    // OPERACIONES
+    // =================================
 
-    ID:i ASIGNACION operacion:o PUNTO_COMA
+    | ID:id IGUAL expr:e PYC
     {:
-        SymbolTable.guardar(i, o);
+
+        SymbolTable.put(
+                id,
+                e
+        );
+
+        System.out.println(
+                "Resultado guardado: "
+                        + id + " = " + e
+        );
+
     :}
 
-    |
+    // =================================
+    // VENN
+    // =================================
 
-    VENN PAREN_ABRE operacion:o PAREN_CIERRA PUNTO_COMA
+    | VENN PAR_IZQ expr:e PAR_DER PYC
     {:
-        System.out.println("Resultado = " + o);
 
-        VennGenerator.generar(o.toString());
+        System.out.println(
+                "\n========= VENN ========="
+        );
+
+        System.out.println(
+                "Resultado: " + e
+        );
+
+        System.out.println(
+                "========================\n"
+        );
+
+        Set<Integer> A = null;
+        Set<Integer> B = null;
+
+        // =============================
+        // UNION
+        // =============================
+
+        if(VennGenerator.operacionActual.contains("∪")){
+
+            String[] partes =
+                    VennGenerator.operacionActual.split("∪");
+
+            A = SymbolTable.get(
+                    partes[0].trim()
+            );
+
+            B = SymbolTable.get(
+                    partes[1].trim()
+            );
+        }
+
+        // =============================
+        // INTERSECCION
+        // =============================
+
+        else if(VennGenerator.operacionActual.contains("∩")){
+
+            String[] partes =
+                    VennGenerator.operacionActual.split("∩");
+
+            A = SymbolTable.get(
+                    partes[0].trim()
+            );
+
+            B = SymbolTable.get(
+                    partes[1].trim()
+            );
+        }
+
+        // =============================
+        // DIFERENCIA
+        // =============================
+
+        else if(VennGenerator.operacionActual.contains("-")){
+
+            String[] partes =
+                    VennGenerator.operacionActual.split("-");
+
+            A = SymbolTable.get(
+                    partes[0].trim()
+            );
+
+            B = SymbolTable.get(
+                    partes[1].trim()
+            );
+        }
+
+        // =============================
+        // DIF SIMETRICA
+        // =============================
+
+        else if(VennGenerator.operacionActual.contains("Δ")){
+
+            String[] partes =
+                    VennGenerator.operacionActual.split("Δ");
+
+            A = SymbolTable.get(
+                    partes[0].trim()
+            );
+
+            B = SymbolTable.get(
+                    partes[1].trim()
+            );
+        }
+
+        // =============================
+        // GENERAR DIAGRAMA
+        // =============================
+
+        if(A != null && B != null){
+
+            VennGenerator.generar(
+                    VennGenerator.operacionActual,
+                    e,
+                    A,
+                    B
+            );
+        }
+
     :}
+
+    // =================================
+    // RECUPERACION ERRORES
+    // =================================
+
+    | error PYC
 ;
 
-conjunto ::=
-    LLAVE_ABRE lista:l LLAVE_CIERRA
-    {:
-        RESULT = new HashSet<>(l);
-    :}
-;
+// =====================================
+// EXPRESIONES
+// =====================================
 
-lista ::=
-    lista:l COMA ENTERO:e
-    {:
-        l.add(e);
+expr ::=
 
-        RESULT = l;
-    :}
-
-    |
-
-    ENTERO:e
-    {:
-        List<Integer> temp = new ArrayList<>();
-
-        temp.add(e);
-
-        RESULT = temp;
-    :}
-;
-
-operacion ::=
+    // =================================
+    // UNION
+    // =================================
 
     ID:a UNION ID:b
     {:
-        RESULT = SetOperations.union(
-                SymbolTable.obtener(a),
-                SymbolTable.obtener(b)
-        );
+
+        Set<Integer> A =
+                SymbolTable.get(a);
+
+        Set<Integer> B =
+                SymbolTable.get(b);
+
+        VennGenerator.operacionActual =
+                a + " ∪ " + b;
+
+        if(A != null && B != null){
+
+            RESULT =
+                    SetOperations.union(A, B);
+
+            System.out.println(
+                    "UNIÓN = " + RESULT
+            );
+
+        } else {
+
+            RESULT =
+                    new HashSet<Integer>();
+        }
+
     :}
 
-    |
+    // =================================
+    // INTERSECCION
+    // =================================
 
-    ID:a INTERSECCION ID:b
+    | ID:a INTERSECCION ID:b
     {:
-        RESULT = SetOperations.interseccion(
-                SymbolTable.obtener(a),
-                SymbolTable.obtener(b)
-        );
+
+        Set<Integer> A =
+                SymbolTable.get(a);
+
+        Set<Integer> B =
+                SymbolTable.get(b);
+
+        VennGenerator.operacionActual =
+                a + " ∩ " + b;
+
+        if(A != null && B != null){
+
+            RESULT =
+                    SetOperations.interseccion(A, B);
+
+            System.out.println(
+                    "INTERSECCIÓN = "
+                            + RESULT
+            );
+
+        } else {
+
+            RESULT =
+                    new HashSet<Integer>();
+        }
+
     :}
 
-    |
+    // =================================
+    // DIFERENCIA
+    // =================================
 
-    ID:a DIFERENCIA ID:b
+    | ID:a DIFERENCIA ID:b
     {:
-        RESULT = SetOperations.diferencia(
-                SymbolTable.obtener(a),
-                SymbolTable.obtener(b)
-        );
+
+        Set<Integer> A =
+                SymbolTable.get(a);
+
+        Set<Integer> B =
+                SymbolTable.get(b);
+
+        VennGenerator.operacionActual =
+                a + " - " + b;
+
+        if(A != null && B != null){
+
+            RESULT =
+                    SetOperations.diferencia(A, B);
+
+            System.out.println(
+                    "DIFERENCIA = "
+                            + RESULT
+            );
+
+        } else {
+
+            RESULT =
+                    new HashSet<Integer>();
+        }
+
     :}
 
-    |
+    // =================================
+    // DIFERENCIA SIMETRICA
+    // =================================
 
-    ID:a DIF_SIMETRICA ID:b
+    | ID:a DIF_SIM ID:b
     {:
-        RESULT = SetOperations.diferenciaSimetrica(
-                SymbolTable.obtener(a),
-                SymbolTable.obtener(b)
-        );
+
+        Set<Integer> A =
+                SymbolTable.get(a);
+
+        Set<Integer> B =
+                SymbolTable.get(b);
+
+        VennGenerator.operacionActual =
+                a + " Δ " + b;
+
+        if(A != null && B != null){
+
+            RESULT =
+                    SetOperations.diferenciaSimetrica(A, B);
+
+            System.out.println(
+                    "DIFERENCIA SIMÉTRICA = "
+                            + RESULT
+            );
+
+        } else {
+
+            RESULT =
+                    new HashSet<Integer>();
+        }
+
+    :}
+
+    // =================================
+    // SOLO ID
+    // =================================
+
+    | ID:id
+    {:
+
+        RESULT =
+                SymbolTable.get(id);
+
+    :}
+;
+
+// =====================================
+// CONJUNTOS
+// =====================================
+
+conjunto ::=
+    LLAVE_IZQ lista:l LLAVE_DER
+    {:
+
+        if(l.isEmpty()){
+
+            ErrorManager.addError(
+                    "Semántico",
+                    "Conjunto vacío no permitido",
+                    0,
+                    0
+            );
+        }
+
+        RESULT = l;
+
+    :}
+;
+
+// =====================================
+// LISTA ELEMENTOS
+// =====================================
+
+lista ::=
+
+    NUMERO:n
+    {:
+
+        RESULT =
+                new HashSet<Integer>();
+
+        RESULT.add(n);
+
+    :}
+
+    | lista:l COMA NUMERO:n
+    {:
+
+        l.add(n);
+
+        RESULT = l;
+
     :}
 ;
